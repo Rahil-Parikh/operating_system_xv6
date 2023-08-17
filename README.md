@@ -1,8 +1,7 @@
-# CSE 536: Assignment 2: Process Memory Management in xv
+# CSE 536: Assignment 2: Process Memory Management in xv6
 
 Implement on-demand paging for a process using page faults. This requires
-you to change how the xv6 OS currently statically allocates pages for a process, write a page fault handler
-to intercept and load pages on page faults, and swap pages to disk if the system is out of memory.
+you to change how the xv6 OS currently statically allocates pages for a process, write a page fault handler to intercept and load pages on page faults, and swap pages to disk if the system is out of memory.
 
 ## Implementations
 

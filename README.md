@@ -38,6 +38,12 @@ Please reach out to the TAs if you have any installation issues.
 
 - Can be resolved by running `sudo apt install libpixman-1-dev` ([link](https://stackoverflow.com/a/39916441))
 
+## Check the following branches to find their respective implementations
+- 1_startup_process - Boot Rom and Bootloader
+- 2_vitual_mem_mngt - Process Memory Management
+- 3_user_thread_mngt - User-Level Thread Management
+- 4_trap_emulate_virtualization - Trap and Emulate Virtualization 
+
 ## Acknowledgement
 
-We remain thankful to the xv6 team at MIT for their open-source codebase. 
+Thankful to the xv6 team at MIT for their open-source codebase. 

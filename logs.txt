@@ -1,0 +1,14 @@
+rm -rf fs.img
+mkfs/mkfs fs.img README user/_cat user/_echo user/_forktest user/_grep user/_init user/_kill user/_ln user/_ls user/_mkdir user/_rm user/_sh user/_stressfs user/_usertests user/_grind user/_wc user/_test4-odheap user/_test5-odheap-big user/_test6-pswap1 user/_test7-pswap2 user/_zombie 
+nmeta 1046 (boot, super, log blocks 30 swap blocks 1000 inode blocks 13, bitmap blocks 1) blocks 1954 total 3000
+CSE 536: Swap disk blocks (32-1032)
+balloc: first 1884 blocks have been allocated
+balloc: write bitmap block at sector 1045
+qemu-system-riscv64 -machine virt -bios none -kernel kernel/kernel -m 128M -smp 1 -nographic -global virtio-mmio.force-legacy=false -drive file=fs.img,if=none,format=raw,id=x0 -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
+
+xv6 kernel is booting
+
+init: starting sh
+$ QEMU 6.0.0 monitor - type 'help' for more information
+(qemu) QEMU: Terminated
+

@@ -1,13 +1,36 @@
-B=bootloader
 K=kernel
 U=user
 
 OBJS = \
-  $B/entry.o \
-  $B/start.o \
-  $B/load.o \
-  $B/string.o \
-  $B/elf.o
+  $K/entry.o \
+  $K/start.o \
+  $K/console.o \
+  $K/printf.o \
+  $K/uart.o \
+  $K/kalloc.o \
+  $K/spinlock.o \
+  $K/string.o \
+  $K/main.o \
+  $K/vm.o \
+  $K/proc.o \
+  $K/swtch.o \
+  $K/trampoline.o \
+  $K/trap.o \
+  $K/syscall.o \
+  $K/sysproc.o \
+  $K/bio.o \
+  $K/fs.o \
+  $K/log.o \
+  $K/sleeplock.o \
+  $K/file.o \
+  $K/pipe.o \
+  $K/exec.o \
+  $K/sysfile.o \
+  $K/kernelvec.o \
+  $K/plic.o \
+  $K/virtio_disk.o \
+  $K/pfault.o \
+  $K/debug.o 
 
 # riscv64-unknown-elf- or riscv64-linux-gnu-
 # perhaps in /opt/riscv/bin
@@ -35,7 +58,8 @@ LD = $(TOOLPREFIX)ld
 OBJCOPY = $(TOOLPREFIX)objcopy
 OBJDUMP = $(TOOLPREFIX)objdump
 
-CFLAGS = -Wall -O0 -fno-omit-frame-pointer -ggdb -gdwarf-2
+# CFLAGS = -Wall -Werror -O -fno-omit-frame-pointer -ggdb -gdwarf-2
+CFLAGS = -Wall -O -fno-omit-frame-pointer -ggdb -gdwarf-2
 CFLAGS += -MD
 CFLAGS += -mcmodel=medany
 CFLAGS += -ffreestanding -fno-common -nostdlib -mno-relax
@@ -52,25 +76,73 @@ endif
 
 LDFLAGS = -z max-page-size=4096
 
-# Adil: Creating the bootloader binary
-$B/bootloader: $(OBJS) $B/bootloader.ld 
-	$(LD) $(LDFLAGS) -T $B/bootloader.ld -o $B/bootloader $(OBJS)
-	$(OBJDUMP) -S $B/bootloader > $B/bootloader.asm
-	$(OBJDUMP) -t $B/bootloader | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $B/bootloader.sym
+$K/kernel: $(OBJS) $K/kernel.ld $U/initcode
+	$(LD) $(LDFLAGS) -T $K/kernel.ld -o $K/kernel $(OBJS) 
+	$(OBJDUMP) -S $K/kernel > $K/kernel.asm
+	$(OBJDUMP) -t $K/kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $K/kernel.sym
+
+$U/initcode: $U/initcode.S
+	$(CC) $(CFLAGS) -march=rv64g -nostdinc -I. -Ikernel -c $U/initcode.S -o $U/initcode.o
+	$(LD) $(LDFLAGS) -N -e start -Ttext 0 -o $U/initcode.out $U/initcode.o
+	$(OBJCOPY) -S -O binary $U/initcode.out $U/initcode
+	$(OBJDUMP) -S $U/initcode.o > $U/initcode.asm
 
 tags: $(OBJS) _init
 	etags *.S *.c
+
+ULIB = $U/ulib.o $U/usys.o $U/printf.o $U/umalloc.o
 
 _%: %.o $(ULIB)
 	$(LD) $(LDFLAGS) -T $U/user.ld -o $@ $^
 	$(OBJDUMP) -S $@ > $*.asm
 	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $*.sym
 
+$U/usys.S : $U/usys.pl
+	perl $U/usys.pl > $U/usys.S
+
+$U/usys.o : $U/usys.S
+	$(CC) $(CFLAGS) -c -o $U/usys.o $U/usys.S
+
+$U/_forktest: $U/forktest.o $(ULIB)
+	# forktest has less library code linked in - needs to be small
+	# in order to be able to max out the proc table.
+	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $U/_forktest $U/forktest.o $U/ulib.o $U/usys.o
+	$(OBJDUMP) -S $U/_forktest > $U/forktest.asm
+
+mkfs/mkfs: mkfs/mkfs.c $K/fs.h $K/param.h
+	gcc -Werror -Wall -I. -o mkfs/mkfs mkfs/mkfs.c
+
 # Prevent deletion of intermediate files, e.g. cat.o, after first build, so
 # that disk image changes after first build are persistent until clean.  More
 # details:
 # http://www.gnu.org/software/make/manual/html_node/Chained-Rules.html
 .PRECIOUS: %.o
+
+UPROGS=\
+	$U/_cat\
+	$U/_echo\
+	$U/_forktest\
+	$U/_grep\
+	$U/_init\
+	$U/_kill\
+	$U/_ln\
+	$U/_ls\
+	$U/_mkdir\
+	$U/_rm\
+	$U/_sh\
+	$U/_stressfs\
+	$U/_usertests\
+	$U/_grind\
+	$U/_wc\
+	$U/_test4-odheap\
+	$U/_test5-odheap-big\
+	$U/_test6-pswap1\
+	$U/_test7-pswap2\
+	$U/_zombie\
+
+# swap disk
+swap.img:
+	 dd if=/dev/zero of=$@ bs=1K count=1000
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
@@ -80,7 +152,7 @@ fs.img: mkfs/mkfs README $(UPROGS)
 clean: 
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg \
 	*/*.o */*.d */*.asm */*.sym \
-	$U/initcode $U/initcode.out $B/bootloader fs.img \
+	$U/initcode $U/initcode.out $K/kernel fs.img \
 	mkfs/mkfs .gdbinit \
         $U/usys.S \
 	$(UPROGS)
@@ -95,37 +167,22 @@ ifndef CPUS
 CPUS := 1
 endif
 
-QEMUOPTS = -machine virt -bios none -kernel $B/bootloader -m 128M -smp $(CPUS) -nographic
-QEMUOPTS1 += -initrd kernel1
-QEMUOPTS2 += -initrd kernel2
-QEMUOPTS3 += -initrd kernel3
-QEMUOPTS4 += -initrd kernel4
-QEMUOPTS5 += -initrd kernel-pmp
+QEMUOPTS = -machine virt -bios none -kernel $K/kernel -m 128M -smp $(CPUS) -nographic
+QEMUOPTS += -global virtio-mmio.force-legacy=false
+QEMUOPTS += -drive file=fs.img,if=none,format=raw,id=x0
+QEMUOPTS += -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
 
-qemu: kernel2 $B/bootloader
-	$(QEMU) $(QEMUOPTS) $(QEMUOPTS1)
+# CSE 536: added this to avoid disk-related issues.
+clean-disk:
+	rm -rf fs.img
 
-qemu-kernel1: kernel1 $B/bootloader
-	$(QEMU) $(QEMUOPTS) $(QEMUOPTS1)
-
-qemu-kernel2: kernel2 $B/bootloader
-	$(QEMU) $(QEMUOPTS) $(QEMUOPTS2)
-
-qemu-kernel3: kernel3 $B/bootloader
-	$(QEMU) $(QEMUOPTS) $(QEMUOPTS3)
-
-qemu-kernel4: kernel4 $B/bootloader
-	$(QEMU) $(QEMUOPTS) $(QEMUOPTS4)
-
-qemu-kernel-pmp: kernel-pmp $B/bootloader
-	$(QEMU) $(QEMUOPTS) $(QEMUOPTS5)
+qemu: $K/kernel clean-disk fs.img swap.img
+	$(QEMU) $(QEMUOPTS)
 
 .gdbinit: .gdbinit.tmpl-riscv
 	sed "s/:1234/:$(GDBPORT)/" < $^ > $@
 
-qemu-gdb: $B/bootloader .gdbinit
+qemu-gdb: $K/kernel .gdbinit fs.img
 	@echo "*** Now run 'gdb' in another window." 1>&2
-	$(QEMU) $(QEMUOPTS) $(QEMUOPTS1) -S $(QEMUGDB)
+	$(QEMU) $(QEMUOPTS) -S $(QEMUGDB)
 
-run-gdb:
-	riscv64-unknown-elf-gdb

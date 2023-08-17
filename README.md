@@ -1,11 +1,12 @@
-# CSE 536: Assignment 2: Process Memory Management in xv6
+# CSE 536: Assignment 3: User-Level Thread Management
 
-Implement on-demand paging for a process using page faults. This requires
-you to change how the xv6 OS currently statically allocates pages for a process, write a page fault handler to intercept and load pages on page faults, and swap pages to disk if the system is out of memory.
+Implement user-level threads (also called self-threads) for xv6 processes and make scheduling decisions inside the process based on different policies.
+An xv6 process starts with only one kernel-supported thread. Within the process, thread divided
+into several user-level threads. Maintaining one of these user-level threads as a user-level scheduler thread. This thread will make decisions regarding which user-level thread should execute at a certain time, based on different scheduling algorithms that can be choose.
 
-## Implementations
-
-- On-demand loading of a program binary’s contents
-- Page fault handler to load program binary contents on-demand
-- Loading heap memory on-demand as well to efficiently use system memory
-- Page swapping to disk for the heap memory of a process during a page fault.
+## User-Level Threading Library 
+- Library initialization
+- Thread creation
+- Thread switch
+- Thread yield and destroy
+- Thread scheduling decisions

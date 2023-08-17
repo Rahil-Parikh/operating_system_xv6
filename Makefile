@@ -29,7 +29,6 @@ OBJS = \
   $K/kernelvec.o \
   $K/plic.o \
   $K/virtio_disk.o \
-  $K/pfault.o \
   $K/debug.o 
 
 # riscv64-unknown-elf- or riscv64-linux-gnu-
@@ -90,7 +89,7 @@ $U/initcode: $U/initcode.S
 tags: $(OBJS) _init
 	etags *.S *.c
 
-ULIB = $U/ulib.o $U/usys.o $U/printf.o $U/umalloc.o
+ULIB = $U/ulib.o $U/usys.o $U/printf.o $U/umalloc.o $U/ulthread.o $U/ulthread_swtch.o
 
 _%: %.o $(ULIB)
 	$(LD) $(LDFLAGS) -T $U/user.ld -o $@ $^
@@ -134,10 +133,14 @@ UPROGS=\
 	$U/_usertests\
 	$U/_grind\
 	$U/_wc\
-	$U/_test4-odheap\
-	$U/_test5-odheap-big\
-	$U/_test6-pswap1\
-	$U/_test7-pswap2\
+	$U/_test1\
+	$U/_test2\
+	$U/_test3\
+	$U/_test4\
+	$U/_test5\
+	$U/_test6\
+	$U/_test7\
+	$U/_test8\
 	$U/_zombie\
 
 # swap disk

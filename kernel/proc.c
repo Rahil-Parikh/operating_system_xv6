@@ -254,21 +254,6 @@ userinit(void)
   release(&p->lock);
 }
 
-/* CSE 536: tracking each heap page allocated to the process. */
-void track_heap(struct proc* p, uint64 start, int npages) {
-  for (int i = 0; i < MAXHEAP; i++) {
-    if (p->heap_tracker[i].addr == 0xFFFFFFFFFFFFFFFF) {
-      p->heap_tracker[i].addr           = start + (i*PGSIZE);
-      p->heap_tracker[i].loaded         = 0;   
-      p->heap_tracker[i].startblock     = -1;
-
-      npages--;
-      if (npages == 0) return;
-    } 
-  }
-  panic("Error: No more process heap pages allowed.\n");
-}
-
 // Grow or shrink user memory by n bytes.
 // Return 0 on success, -1 on failure.
 int
@@ -276,36 +261,15 @@ growproc(int n)
 {
   uint64 sz;
   struct proc *p = myproc();
-  /* CSE 536: (2.3) Instead of allocating pages, make these allocations
-   * on-demand. Also, keep track of all allocated heap pages. 
-   */
 
   /* CSE 536: For simplicity, I've made all allocations at page-level. */
   n = PGROUNDUP(n);
-  
-  sz = p->sz;
-  if(p->ondemand && n>0){
-    uint64 i = 0;
-    for(uint64 a = sz; a <  sz + n; a += PGSIZE, i++){
-      p->heap_tracker[i].addr =  a;
-      // p->resident_heap_pages++;
-    }
-    print_skip_heap_region(p->name,sz,i);
-    p->sz =  sz + n;
-    // } else if(n < 0){
-    //   // sz = uvmdealloc(p->pagetable, sz, sz + n);
 
-    //   // if(PGROUNDUP(sz + n) < PGROUNDUP(sz)){
-    //   //   int npages = (PGROUNDUP(sz + n) - PGROUNDUP(sz)) / PGSIZE;
-    //   //   uvmunmap(p->pagetable, PGROUNDUP(sz + n), npages, 1);
-    //   // }
-    // }
-    return 0;
-  }else if(n > 0){
+  sz = p->sz;
+  if(n > 0){
     if((sz = uvmalloc(p->pagetable, sz, sz + n, PTE_W)) == 0) {
       return -1;
     }
-
   } else if(n < 0){
     sz = uvmdealloc(p->pagetable, sz, sz + n);
   }
@@ -348,11 +312,6 @@ fork(void)
   np->cwd = idup(p->cwd);
 
   safestrcpy(np->name, p->name, sizeof(p->name));
-
-  /* CSE 536: Copy the on-demand bit too. This is needed since
-   * sh is always forked on any command, and it is reexecuted
-   * from its forked counterpart. */
-  np->ondemand = p->ondemand;
 
   pid = np->pid;
 

@@ -48,10 +48,10 @@ usertrap(void)
   struct proc *p = myproc();
 
   /* CSE 536: (2.2) Intercept page faults and redirect them to the fault handler. */
-  
+
   // save user program counter.
   p->trapframe->epc = r_sepc();
-
+  
   if(r_scause() == 8){
     // system call
 
@@ -67,9 +67,6 @@ usertrap(void)
     intr_on();
 
     syscall();
-  } else if(r_scause()==12||r_scause()==13||r_scause()==15){
-    // printf("r_scause() : %d\n",r_scause());
-    page_fault_handler();
   } else if((which_dev = devintr()) != 0){
     // ok
   } else {
@@ -111,7 +108,7 @@ usertrapret(void)
   p->trapframe->kernel_sp = p->kstack + PGSIZE; // process's kernel stack
   p->trapframe->kernel_trap = (uint64)usertrap;
   p->trapframe->kernel_hartid = r_tp();         // hartid for cpuid()
-  
+
   // set up the registers that trampoline.S's sret will use
   // to get to user space.
   

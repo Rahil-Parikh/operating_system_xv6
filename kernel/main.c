@@ -28,10 +28,6 @@ main()
     iinit();         // inode table
     fileinit();      // file table
     virtio_disk_init(); // emulated hard disk
-
-    /* CSE 536: Initialize all PSA regions when OS boots. */
-    init_psa_regions();
-
     userinit();      // first user process
     __sync_synchronize();
     started = 1;

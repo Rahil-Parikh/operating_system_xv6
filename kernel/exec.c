@@ -6,6 +6,7 @@
 #include "proc.h"
 #include "defs.h"
 #include "elf.h"
+
 // static 
 int loadseg(pde_t *, uint64, struct inode *, uint, uint);
 
@@ -31,12 +32,6 @@ exec(char *path, char **argv)
   pagetable_t pagetable = 0, oldpagetable;
   struct proc *p = myproc();
 
-  /* CSE 536: (2.1) Check on-demand status. */
-  if (!(strncmp(path,"/init",5)==0 || strncmp(path,"sh",2)==0)) {
-    print_ondemand_proc(path);
-    p->ondemand = true;
-  }
-
   begin_op();
 
   if((ip = namei(path)) == 0){
@@ -56,7 +51,6 @@ exec(char *path, char **argv)
     goto bad;
 
   // Load program into memory.
-  // printf("phnum :%d \n",elf.phnum);
   for(i=0, off=elf.phoff; i<elf.phnum; i++, off+=sizeof(ph)){
     if(readi(ip, 0, (uint64)&ph, off, sizeof(ph)) != sizeof(ph))
       goto bad;
@@ -68,19 +62,13 @@ exec(char *path, char **argv)
       goto bad;
     if(ph.vaddr % PGSIZE != 0)
       goto bad;
-    
-    if(p->ondemand){
-      sz = ph.vaddr + ph.memsz;
-      print_skip_section(path, ph.vaddr, ph.memsz);      
-    } else{
-      uint64 sz1;
-      if((sz1 = uvmalloc(pagetable, sz, ph.vaddr + ph.memsz, flags2perm(ph.flags))) == 0)
-        goto bad;
-      sz = sz1;
-      if(loadseg(pagetable, ph.vaddr, ip, ph.off, ph.filesz) < 0)
-        goto bad;
-    }
-    
+
+    uint64 sz1;
+    if((sz1 = uvmalloc(pagetable, sz, ph.vaddr + ph.memsz, flags2perm(ph.flags))) == 0)
+      goto bad;
+    sz = sz1;
+    if(loadseg(pagetable, ph.vaddr, ip, ph.off, ph.filesz) < 0)
+      goto bad;
   }
   iunlockput(ip);
   end_op();
@@ -141,15 +129,6 @@ exec(char *path, char **argv)
   p->trapframe->epc = elf.entry;  // initial program counter = main
   p->trapframe->sp = sp; // initial stack pointer
   proc_freepagetable(oldpagetable, oldsz);
-
-  // CSE 536: Clear all heap track regions
-  for (int i = 0; i < MAXHEAP; i++) {
-    p->heap_tracker[i].addr            = 0xFFFFFFFFFFFFFFFF;
-    p->heap_tracker[i].startblock      = -1;
-    p->heap_tracker[i].last_load_time  = 0xFFFFFFFFFFFFFFFF;
-    p->heap_tracker[i].loaded          = false;
-  }
-  p->resident_heap_pages = 0;
 
   return argc; // this ends up in a0, the first argument to main(argc, argv)
 

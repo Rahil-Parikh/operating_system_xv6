@@ -1,5 +1,0 @@
-[*] ultcreate(tid: 1, ra: 0x0000000000000000, sp: 0x0000000000003020)
-[*] ultschedule (next tid: 1), time = -1
-[.] started the thread function (tid = 1, a1 = 6, a2 = 5, a3 = 4, a4 = 3, a5 = 2, a6 = 1)
-[*] ultdestroy(tid: 1)
-[*] User-Level Threading Test #7 (Arguments Checking - FCFS) Complete.

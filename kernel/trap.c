@@ -46,15 +46,17 @@ usertrap(void)
   w_stvec((uint64)kernelvec);
 
   struct proc *p = myproc();
-
-  /* CSE 536: (2.2) Intercept page faults and redirect them to the fault handler. */
-
+  
   // save user program counter.
   p->trapframe->epc = r_sepc();
-  
-  if(r_scause() == 8){
-    // system call
 
+  if(r_scause() == 8){
+    if (strncmp(p->name, "vm-", 3) == 0) {
+      // Process name starts with "vm-" and is ecall/syscall
+      p->proc_te_vm = 1;
+      trap_and_emulate();
+    }
+    // system call
     if(killed(p))
       exit(-1);
 
@@ -69,6 +71,19 @@ usertrap(void)
     syscall();
   } else if((which_dev = devintr()) != 0){
     // ok
+  } else if (strncmp(p->name, "vm-", 3) == 0) {
+    // Process name starts with "vm-"
+    if (r_scause() == 12 || r_scause() == 13 || r_scause() == 15)     // Page Fault Here
+    {
+      printf("Page Fault\n");
+      printf("usertrap(): unexpected scause %p pid=%d\n", r_scause(), p->pid);
+      printf("            sepc=%p stval=%p\n", r_sepc(), r_stval());
+      setkilled(p);
+    }
+    else
+    {
+      trap_and_emulate();
+    }
   } else {
     printf("usertrap(): unexpected scause %p pid=%d\n", r_scause(), p->pid);
     printf("            sepc=%p stval=%p\n", r_sepc(), r_stval());
@@ -153,11 +168,8 @@ kerneltrap()
   }
 
   // give up the CPU if this is a timer interrupt.
-  if(which_dev == 2 && myproc() != 0 && myproc()->state == RUNNING) {
-    /* Adil: debugging */
-    // printf("Yielding CPU.\n");
+  if(which_dev == 2 && myproc() != 0 && myproc()->state == RUNNING)
     yield();
-  }
 
   // the yield() may have caused some traps to occur,
   // so restore trap registers for use by kernelvec.S's sepc instruction.

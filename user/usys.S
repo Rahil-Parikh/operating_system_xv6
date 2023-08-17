@@ -105,8 +105,3 @@ uptime:
  li a7, SYS_uptime
  ecall
  ret
-.global ctime
-ctime:
- li a7, SYS_ctime
- ecall
- ret

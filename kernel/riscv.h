@@ -241,13 +241,6 @@ r_stval()
   return x;
 }
 
-/* Adil: for artificial page fault handling */
-static inline void
-w_stval(uint64 x)
-{
-  asm volatile("csrw stval, %0" : : "r" (x) );
-}
-
 // Machine-mode Counter-Enable
 static inline void 
 w_mcounteren(uint64 x)

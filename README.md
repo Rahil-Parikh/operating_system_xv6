@@ -1,12 +1,10 @@
-# CSE 536: Assignment 3: User-Level Thread Management
+# CSE 536: Assignment 4: Trap and Emulate Virtualization
 
-Implement user-level threads (also called self-threads) for xv6 processes and make scheduling decisions inside the process based on different policies.
-An xv6 process starts with only one kernel-supported thread. Within the process, thread divided
-into several user-level threads. Maintaining one of these user-level threads as a user-level scheduler thread. This thread will make decisions regarding which user-level thread should execute at a certain time, based on different scheduling algorithms that can be choose.
+Implemented a way to design a virtual machine—trap and emulate. The high-level idea of this approach is that the virtual machine (VM) runs as a user-mode process on the host operating system, which also acts like a virtual machine monitor (VMM). The VM is allowed to execute user-level (unprivileged) instructions directly, while all supervisor-level (privileged) instructions trap to the VMM. It then emulates these trapped privileged instructions and maintains (in-memory) all privileged state of the VM. This state includes all privileged registers (e.g., satp, scause, stvec, etc. in RISC-V)
 
-## User-Level Threading Library 
-- Library initialization
-- Thread creation
-- Thread switch
-- Thread yield and destroy
-- Thread scheduling decisions
+## Implementations
+- Privileged Virtual Machine State Initialization 
+- Track Virtual Machine Execution and Redirect Traps
+- Decode Trapped Privileged Instruction
+- Emulate Decoded Instructions
+- Emulating Physical Memory Protection (PMP)

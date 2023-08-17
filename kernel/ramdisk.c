@@ -12,6 +12,9 @@
 #include "fs.h"
 #include "buf.h"
 
+/* TODO: find the location of the QEMU ramdisk. */
+#define RAMDISK 0x84000000
+
 void
 ramdiskinit(void)
 {
@@ -22,10 +25,12 @@ ramdiskinit(void)
 void
 ramdiskrw(struct buf *b)
 {
+#if 0
   if(!holdingsleep(&b->lock))
     panic("ramdiskrw: buf not locked");
   if((b->flags & (B_VALID|B_DIRTY)) == B_VALID)
     panic("ramdiskrw: nothing to do");
+#endif
 
   if(b->blockno >= FSSIZE)
     panic("ramdiskrw: blockno too big");
@@ -33,6 +38,11 @@ ramdiskrw(struct buf *b)
   uint64 diskaddr = b->blockno * BSIZE;
   char *addr = (char *)RAMDISK + diskaddr;
 
+  // read from the location
+  memmove(b->data, addr, BSIZE);
+  b->valid = 1;
+
+#if 0
   if(b->flags & B_DIRTY){
     // write
     memmove(addr, b->data, BSIZE);
@@ -42,4 +52,5 @@ ramdiskrw(struct buf *b)
     memmove(b->data, addr, BSIZE);
     b->flags |= B_VALID;
   }
+#endif
 }

@@ -12,7 +12,7 @@ sys_exit(void)
   int n;
   argint(0, &n);
   exit(n);
-  return 0; // not reached
+  return 0;  // not reached
 }
 
 uint64
@@ -43,9 +43,8 @@ sys_sbrk(void)
 
   argint(0, &n);
   addr = myproc()->sz;
-  if (growproc(n) < 0)
+  if(growproc(n) < 0)
     return -1;
-
   return addr;
 }
 
@@ -58,10 +57,8 @@ sys_sleep(void)
   argint(0, &n);
   acquire(&tickslock);
   ticks0 = ticks;
-  while (ticks - ticks0 < n)
-  {
-    if (killed(myproc()))
-    {
+  while(ticks - ticks0 < n){
+    if(killed(myproc())){
       release(&tickslock);
       return -1;
     }
@@ -91,11 +88,4 @@ sys_uptime(void)
   xticks = ticks;
   release(&tickslock);
   return xticks;
-}
-
-// return the current_time
-uint64
-sys_ctime(void)
-{
-  return r_time();
 }

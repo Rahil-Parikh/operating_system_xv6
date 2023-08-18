@@ -1,7 +1,7 @@
 # CSE 536: Advanced Operating System
 Follow steps to setup necessary dependencies for developing xv6 OS. Find the respective implentations in the branches of the same repository.
 
-# Check the following branches to find their respective implementations
+## Check the following branches to find their respective implementations
 - <a href ="https://github.com/Rahil-Parikh/operating_system_xv6/tree/1_startup_process">1_startup_process</a> - Boot Rom and Bootloader
 - <a href ="https://github.com/Rahil-Parikh/operating_system_xv6/tree/2_vitual_mem_mngt">2_vitual_mem_mngt</a> - Process Memory Management
 - <a href ="https://github.com/Rahil-Parikh/operating_system_xv6/tree/3_user_thread_mngt">3_user_thread_mngt</a> - User-Level Thread Management

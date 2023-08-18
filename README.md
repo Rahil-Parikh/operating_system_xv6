@@ -1,6 +1,11 @@
-# CSE 536: Getting Started
+# CSE 536: Advanced Operating System
+Follow steps to setup necessary dependencies for developing xv6 OS. Find the respective implentations in the branches of the same repository.
 
-In ASU's Advanced Operating System course (CSE 536), we are using the xv6 Operating System for programming assignments. xv6 is a teaching-focused OS designed by some incredible folks at MIT ([link](https://github.com/mit-pdos/xv6-riscv.git)). This README explains how to setup QEMU and a GNU RISC-V toolchain, needed for running xv6, as well how to boot up a QEMU VM with xv6.
+# Check the following branches to find their respective implementations
+- <a href ="https://github.com/Rahil-Parikh/operating_system_xv6/tree/1_startup_process">1_startup_process</a> - Boot Rom and Bootloader
+- <a href ="https://github.com/Rahil-Parikh/operating_system_xv6/tree/2_vitual_mem_mngt">2_vitual_mem_mngt</a> - Process Memory Management
+- <a href ="https://github.com/Rahil-Parikh/operating_system_xv6/tree/3_user_thread_mngt">3_user_thread_mngt</a> - User-Level Thread Management
+- <a href ="https://github.com/Rahil-Parikh/operating_system_xv6/tree/4_trap_emulate_virtualization">4_trap_emulate_virtualization</a> - Trap and Emulate Virtualization 
 
 ## A. Installing xv6 pre-requisites 
 
@@ -38,11 +43,7 @@ Please reach out to the TAs if you have any installation issues.
 
 - Can be resolved by running `sudo apt install libpixman-1-dev` ([link](https://stackoverflow.com/a/39916441))
 
-## Check the following branches to find their respective implementations
-- 1_startup_process - Boot Rom and Bootloader
-- 2_vitual_mem_mngt - Process Memory Management
-- 3_user_thread_mngt - User-Level Thread Management
-- 4_trap_emulate_virtualization - Trap and Emulate Virtualization 
+
 
 ## Acknowledgement
 
